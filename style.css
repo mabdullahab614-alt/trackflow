@@ -121,6 +121,23 @@ body{
   background: var(--cyan-dim);
 }
 
+.reset-btn{
+  background: transparent;
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-weight: 600;
+  transition: all 0.2s;
+}
+.reset-btn:hover{
+  background: rgba(255,71,87,0.1);
+  box-shadow: 0 0 15px rgba(255,71,87,0.3);
+}
+
 .primary-btn{
   background: var(--purple);
   color: #fff;
