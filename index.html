@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Ledger — Habit & Diary Tracker</title>
+<meta name="theme-color" content="#14171c">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <h1 class="logo">LEDGER</h1>
+      <p class="tagline">discipline, logged daily</p>
+    </div>
+    <div class="header-right">
+      <div class="month-nav">
+        <button id="prevMonth" class="nav-btn" aria-label="Previous month">‹</button>
+        <span id="monthLabel" class="month-label">June 2026</span>
+        <button id="nextMonth" class="nav-btn" aria-label="Next month">›</button>
+      </div>
+      <button id="todayBtn" class="ghost-btn">Today</button>
+    </div>
+  </header>
+
+  <!-- STREAK STRIP -->
+  <section class="streak-strip" id="streakStrip">
+    <!-- populated by JS -->
+  </section>
+
+  <!-- HABIT GRID -->
+  <section class="grid-section">
+    <div class="grid-toolbar">
+      <h2>This month</h2>
+      <button id="addHabitBtn" class="primary-btn">+ Add habit</button>
+    </div>
+    <div class="grid-wrapper">
+      <table class="habit-grid" id="habitGrid">
+        <thead>
+          <tr id="dayHeaderRow"></tr>
+        </thead>
+        <tbody id="habitRows"></tbody>
+      </table>
+    </div>
+    <p class="empty-hint" id="emptyHint" hidden>No habits yet. Add one above to start your ledger.</p>
+  </section>
+
+  <!-- DIARY -->
+  <section class="diary-section">
+    <div class="diary-header">
+      <h2>Daily entry</h2>
+      <input type="date" id="diaryDate" class="date-input">
+    </div>
+    <textarea id="diaryText" class="diary-textarea" placeholder="What happened today? Wins, slips, thoughts — write it down."></textarea>
+    <div class="diary-footer">
+      <span id="diaryStatus" class="diary-status">Not saved yet</span>
+      <button id="saveDiaryBtn" class="primary-btn">Save entry</button>
+    </div>
+  </section>
+
+</div>
+
+<!-- ADD HABIT MODAL -->
+<div class="modal-overlay" id="modalOverlay" hidden>
+  <div class="modal">
+    <h3>New habit</h3>
+    <input type="text" id="newHabitName" class="modal-input" placeholder="e.g. Gym, No fap, Read 10 pages" maxlength="40">
+    <div class="modal-actions">
+      <button id="cancelHabitBtn" class="ghost-btn">Cancel</button>
+      <button id="confirmHabitBtn" class="primary-btn">Add</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
