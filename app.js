@@ -93,6 +93,16 @@ document.getElementById('prevMonth').addEventListener('click',()=>{ viewDate.set
 document.getElementById('nextMonth').addEventListener('click',()=>{ viewDate.setMonth(viewDate.getMonth()+1); renderGrid(); });
 document.getElementById('todayBtn').addEventListener('click',()=>{ viewDate=new Date(); renderGrid(); });
 
+// RESET ALL
+document.getElementById('resetAllBtn').addEventListener('click',()=>{
+  if(confirm('⚠️ Reset EVERYTHING? All habits, streaks and diary will be deleted permanently!')){
+    data = { habits:[], logs:{}, diary:{} };
+    saveData(); renderGrid(); renderStreakStrip();
+    document.getElementById('diaryText').value='';
+    document.getElementById('diaryStatus').textContent='Not saved yet';
+  }
+});
+
 // MODAL
 const overlay=document.getElementById('modalOverlay');
 const nameInput=document.getElementById('newHabitName');
