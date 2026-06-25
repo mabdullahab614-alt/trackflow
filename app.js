@@ -1,5 +1,5 @@
 // ---------- STATE ----------
-const STORAGE_KEY = 'ledger_app_data_v1';
+const STORAGE_KEY = 'trackflow_data_v1';
 
 function loadData(){
   try{
@@ -7,13 +7,10 @@ function loadData(){
     if(raw) return JSON.parse(raw);
   }catch(e){ console.error('Failed to load data', e); }
   return { habits: [], logs: {}, diary: {} };
-  // habits: [{id, name}]
-  // logs: { habitId: { 'YYYY-MM-DD': true } }
-  // diary: { 'YYYY-MM-DD': 'text' }
 }
 
 let data = loadData();
-let viewDate = new Date(); // month currently being viewed
+let viewDate = new Date();
 
 function saveData(){
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -25,22 +22,15 @@ function dateKey(d){ return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.g
 function todayKey(){ return dateKey(new Date()); }
 function daysInMonth(year, month){ return new Date(year, month+1, 0).getDate(); }
 function isWeekend(d){ const wd = d.getDay(); return wd === 0 || wd === 6; }
-function monthLabel(d){
-  return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-}
-
+function monthLabel(d){ return d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }); }
 function uid(){ return 'h_' + Math.random().toString(36).slice(2,9); }
 
-// ---------- STREAK CALCULATION ----------
-// Current streak: consecutive days ending today (or yesterday if today not yet done) where habit was checked.
+// ---------- STREAK ----------
 function computeStreak(habitId){
   const log = data.logs[habitId] || {};
   let streak = 0;
   let cursor = new Date();
-  // if today isn't logged yet, start counting from yesterday so an unbroken streak isn't reset to 0 mid-day
-  if(!log[dateKey(cursor)]){
-    cursor.setDate(cursor.getDate()-1);
-  }
+  if(!log[dateKey(cursor)]){ cursor.setDate(cursor.getDate()-1); }
   while(log[dateKey(cursor)]){
     streak++;
     cursor.setDate(cursor.getDate()-1);
@@ -93,7 +83,6 @@ function renderGrid(){
 
   data.habits.forEach(habit => {
     const tr = document.createElement('tr');
-
     const nameCell = document.createElement('td');
     nameCell.className = 'habit-name-cell';
     nameCell.innerHTML = `<span>${escapeHtml(habit.name)}</span><button class="delete-habit" title="Delete habit" data-habit="${habit.id}">✕</button>`;
@@ -107,12 +96,8 @@ function renderGrid(){
       if(key === tKey) td.classList.add('today-col');
       td.dataset.habit = habit.id;
       td.dataset.date = key;
-
       const done = !!(data.logs[habit.id] && data.logs[habit.id][key]);
-      td.innerHTML = done
-        ? '<div class="stamp">✓</div>'
-        : '<div class="stamp-placeholder"></div>';
-
+      td.innerHTML = done ? '<div class="stamp">✓</div>' : '<div class="stamp-placeholder"></div>';
       tr.appendChild(td);
     }
     tbody.appendChild(tr);
@@ -133,9 +118,7 @@ document.getElementById('habitRows').addEventListener('click', (e) => {
     if(!data.logs[habit]) data.logs[habit] = {};
     data.logs[habit][date] = !data.logs[habit][date];
     if(!data.logs[habit][date]) delete data.logs[habit][date];
-    saveData();
-    renderGrid();
-    renderStreakStrip();
+    saveData(); renderGrid(); renderStreakStrip();
     return;
   }
   const delBtn = e.target.closest('.delete-habit');
@@ -145,41 +128,42 @@ document.getElementById('habitRows').addEventListener('click', (e) => {
     if(habit && confirm(`Delete "${habit.name}"? This removes all its history.`)){
       data.habits = data.habits.filter(h => h.id !== id);
       delete data.logs[id];
-      saveData();
-      renderGrid();
-      renderStreakStrip();
+      saveData(); renderGrid(); renderStreakStrip();
     }
   }
 });
 
 // ---------- MONTH NAV ----------
 document.getElementById('prevMonth').addEventListener('click', () => {
-  viewDate.setMonth(viewDate.getMonth()-1);
-  renderGrid();
+  viewDate.setMonth(viewDate.getMonth()-1); renderGrid();
 });
 document.getElementById('nextMonth').addEventListener('click', () => {
-  viewDate.setMonth(viewDate.getMonth()+1);
-  renderGrid();
+  viewDate.setMonth(viewDate.getMonth()+1); renderGrid();
 });
 document.getElementById('todayBtn').addEventListener('click', () => {
-  viewDate = new Date();
-  renderGrid();
+  viewDate = new Date(); renderGrid();
 });
 
-// ---------- ADD HABIT MODAL ----------
+// ---------- MODAL ----------
 const modalOverlay = document.getElementById('modalOverlay');
 const newHabitName = document.getElementById('newHabitName');
 
-document.getElementById('addHabitBtn').addEventListener('click', () => {
+function openModal(){
   modalOverlay.hidden = false;
   newHabitName.value = '';
   newHabitName.focus();
-});
-document.getElementById('cancelHabitBtn').addEventListener('click', () => {
+}
+function closeModal(){
   modalOverlay.hidden = true;
-});
+}
+
+document.getElementById('addHabitBtn').addEventListener('click', openModal);
+document.getElementById('cancelHabitBtn').addEventListener('click', closeModal);
 modalOverlay.addEventListener('click', (e) => {
-  if(e.target === modalOverlay) modalOverlay.hidden = true;
+  if(e.target === modalOverlay) closeModal();
+});
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Escape') closeModal();
 });
 document.getElementById('confirmHabitBtn').addEventListener('click', addHabit);
 newHabitName.addEventListener('keydown', (e) => {
@@ -191,7 +175,7 @@ function addHabit(){
   if(!name) return;
   data.habits.push({ id: uid(), name });
   saveData();
-  modalOverlay.hidden = true;
+  closeModal();
   renderGrid();
   renderStreakStrip();
 }
@@ -204,32 +188,29 @@ const saveDiaryBtn = document.getElementById('saveDiaryBtn');
 
 function loadDiaryFor(key){
   diaryTextarea.value = data.diary[key] || '';
-  diaryStatus.textContent = data.diary[key] ? 'Saved' : 'Not saved yet';
+  diaryStatus.textContent = data.diary[key] ? '✅ Saved' : 'Not saved yet';
 }
 
 diaryDateInput.value = todayKey();
 loadDiaryFor(todayKey());
 
-diaryDateInput.addEventListener('change', () => {
-  loadDiaryFor(diaryDateInput.value);
-});
+diaryDateInput.addEventListener('change', () => { loadDiaryFor(diaryDateInput.value); });
 
 saveDiaryBtn.addEventListener('click', () => {
   const key = diaryDateInput.value;
   data.diary[key] = diaryTextarea.value;
   saveData();
-  diaryStatus.textContent = 'Saved just now';
+  diaryStatus.textContent = '✅ Saved just now';
 });
 
 diaryTextarea.addEventListener('input', () => {
-  diaryStatus.textContent = 'Unsaved changes';
+  diaryStatus.textContent = '⚠️ Unsaved changes';
 });
 
 // ---------- INIT ----------
 renderGrid();
 renderStreakStrip();
 
-// ---------- PWA: register service worker ----------
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw.js').catch(()=>{});
